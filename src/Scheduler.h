@@ -3,8 +3,10 @@
 
 #include <string>
 #include <vector>
+#include <fstream>
 #include "Queue.h"
 #include "Process.h"
+#include <iomanip>
 using namespace std;
 
 // Struct để lưu timeline (Gantt chart)
@@ -58,6 +60,12 @@ public:
     // ========== DEBUG ==========
     // TODO: In thông tin scheduler (optional)
     void print() const;
+
+    // Đọc file
+    void read(const string& fileName);
+
+    // Ghi file
+    void write(const string& fileName);
 };
 
 #endif

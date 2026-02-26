@@ -177,3 +177,87 @@ void Scheduler::print() const {
     }
     cout << "====================================" << endl;
 }
+
+void Scheduler::read(const string& fileName)
+{
+    ifstream fin(fileName);
+
+    if(!fin.is_open())
+    {
+        cerr << "Can't open file !";
+        return;
+    }
+
+    int n; // Biến đọc dòng quene
+    fin >> n;
+
+    for(int i = 0; i < n; i++)
+    {
+        string queueID, policy;
+        int timeSlice;
+
+        fin >> queueID >> timeSlice >> policy; // Đọc từng dòng queue add vào vector queue
+        Queue q(queueID, timeSlice, policy);
+        addQueue(q);
+    }
+
+    string processID, queueID;
+    int arrival, burst;
+
+    while(fin >> processID >> arrival >> burst >> queueID) // Đọc từng dòng Process cho đến khi hết file, add vào vector process
+    {
+        Process p(processID, arrival, burst, queueID);
+        addProcess(p);
+    }
+
+    fin.close();
+}
+
+void Scheduler::write(const string& fileName)
+{
+    ofstream fout(fileName);
+    if(!fout.is_open())
+    {
+        cerr << "Error writing file !";
+        return;
+    }
+
+    // in sơ đồ tiến trình CPU
+    fout << "================== CPU SCHEDULING DIAGRAM ==================\n\n";
+    fout << left << setw(15) << "[Start - End]" << setw(10) << "Queue" << setw(10) << "Process" << "\n";
+    fout << "-----------------------------------------------------\n";
+
+    for(ScheduleEvent& t: Timeline) // in timeline entry
+    {
+        string timeRange = "[" + to_string(t.StartTime) + " - " + to_string(t.EndTime) + "]";
+        fout << left << setw(15) << timeRange << setw(10) << t.QueueID << setw(10) << t.ProcessID << "\n";
+    }
+
+    fout << "\n================ PROCESS STATISTICS ================\n\n";
+    fout << left << setw(12) << "Process" << setw(12) << "Arrival" << setw(12) << "Burst" << setw(12) << "Completion" << setw(12) << "Turnaround" << setw(12) << "Waiting" << "\n";
+    fout << "--------------------------------------------------------------------\n";
+
+    double sumTurnaround = 0;
+    double sumWatting = 0;
+
+    for(Process& p: Processes) // in tiến trình
+    {
+        fout << left << setw(12) << p.getPID() << setw(12) << p.getArrivalTime() << setw(12) << p.getBurstTime()
+             << setw(12) << p.getCompletionTime() << setw(12) << p.getTurnaroundTime() << setw(12) << p.getWaitingTime() << "\n";
+        
+        // Tính tổng thời gian của Turnaround và Watting
+        sumTurnaround += p.getTurnaroundTime();
+        sumWatting += p.getWaitingTime();
+    }
+
+    // Tính thời gian trung bình của Turnaround và Watting
+    double averageTT = sumTurnaround / Processes.size();
+    double averageWT = sumWatting / Processes.size();
+    fout << "--------------------------------------------------------------------\n";
+
+    fout << "\nAverage Turnaround Time : " << fixed << setprecision(1) << averageTT << "\n"; // in 1 chữ số sau dấu phẩy
+    fout << "Average Waiting Time    : " << fixed << setprecision(1) << averageWT << "\n";
+    fout << "====================================================\n";
+
+    fout.close();
+}

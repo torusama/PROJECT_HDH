@@ -68,6 +68,7 @@ void Process::calculateMetrics() {
     TurnaroundTime = CompletionTime - ArrivalTime;
     WaitingTime = CompletionTime - ArrivalTime - BurstTime;
 }
+
 void Process::print() const {
     cout << "================================" << endl;
     cout << "Process ID       : " << ProcessID << endl;
