@@ -85,60 +85,62 @@ void Scheduler::executeProcess(Process* p, Queue& q, int timeToRun) {
 }
 
 void Scheduler::recordEvent(int start, int end, string queueID, string processID) {
-    ScheduleEvent event(start, end, queueID, processID);
-    Timeline.push_back(event);
+    if (!Timeline.empty()) {
+        ScheduleEvent& last = Timeline.back();
+        if (last.QueueID == queueID && last.ProcessID == processID && last.EndTime == start) {
+            last.EndTime = end;
+            return;
+        }
+    }
+    Timeline.push_back(ScheduleEvent(start, end, queueID, processID));
 }
 
-// ========== MAIN SCHEDULING ==========
 void Scheduler::runScheduling() {
-    // Bước 1: Phân phối process vào các queue
     distributeProcessesToQueues();
-    
-    // Bước 2: Scheduling loop
-    int safetyCounter = 0;  // Tránh infinite loop
-    
+
+    int safetyCounter = 0;
+
     while (!allProcessesCompleted() && safetyCounter++ < 10000) {
-        
-        // Tìm queue tiếp theo có process ready (Round Robin giữa queue)
-        int queueIndex = getNextQueueIndex(CurrentQueueIndex);
-        
-        // Nếu không có queue nào ready
-        if (queueIndex == -1) {
-            // Tăng thời gian lên 1 đơn vị (chờ process đến)
-            CurrentTime++;
+
+        Queue& currentQueue = Queues[CurrentQueueIndex];
+
+        // Nếu queue hiện tại không có process ready → chuyển queue
+        if (!currentQueue.hasReadyProcess(CurrentTime)) {
+            CurrentQueueIndex = (CurrentQueueIndex + 1) % Queues.size();
             continue;
         }
-        
-        // Lấy queue hiện tại
-        Queue& currentQueue = Queues[queueIndex];
-        
-        // Lấy process tiếp theo từ queue (theo SJF hoặc SRTN)
-        Process* selectedProcess = currentQueue.getNextProcess(CurrentTime);
-        
-        // Nếu không có process nào (không nên xảy ra vì đã check hasReadyProcess)
-        if (selectedProcess == nullptr) {
-            CurrentQueueIndex = (queueIndex + 1) % Queues.size();
-            continue;
-        }
-        
-        // Tính thời gian chạy = min(TimeSlice của queue, RemainingTime của process)
+
+        string policy = currentQueue.getPolicy();
         int timeSlice = currentQueue.getTimeSlice();
-        int remainingTime = selectedProcess->getRemainingTime();
-        int timeToRun = min(timeSlice, remainingTime);
-        
-        // Thực thi process
-        executeProcess(selectedProcess, currentQueue, timeToRun);
-        
-        // Chuyển sang queue tiếp theo (Round Robin)
-        CurrentQueueIndex = (queueIndex + 1) % Queues.size();
+        int sliceRemaining = timeSlice;
+
+        // Chạy trong phạm vi time slice của queue
+        while (sliceRemaining > 0 && currentQueue.hasReadyProcess(CurrentTime)) {
+
+            Process* current = currentQueue.getNextProcess(CurrentTime);
+            if (current == nullptr) break;
+
+            if (policy == "SRTN") {
+                // Preemptive → chạy 1 đơn vị
+                executeProcess(current, currentQueue, 1);
+                sliceRemaining--;
+
+            } else { 
+                // SJF non-preemptive
+                int timeToRun = min(sliceRemaining, current->getRemainingTime());
+                executeProcess(current, currentQueue, timeToRun);
+                sliceRemaining -= timeToRun;
+            }
+        }
+
+        // Hết lượt → chuyển queue theo Round Robin
+        CurrentQueueIndex = (CurrentQueueIndex + 1) % Queues.size();
     }
-    
-    // Bước 3: Tính metrics cho tất cả process
+
     for (Process& p : Processes) {
         p.calculateMetrics();
     }
-    
-    // Debug warning nếu vượt quá safety counter
+
     if (safetyCounter >= 10000) {
         cerr << "WARNING: Safety counter reached! Possible infinite loop." << endl;
     }
