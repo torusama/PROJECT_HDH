@@ -41,27 +41,31 @@ bool Queue::hasReadyProcess(int currentTime) {
 
 Process* Queue::getNextProcess(int currentTime) {
     Process* p = NULL;
+
     if (Policy == "SJF") {
         int minBurstTime = INT_MAX;
+
         for (auto a : Processes) {
             if (a->getArrivalTime() <= currentTime && a->getRemainingTime() > 0) {
-                if (minBurstTime < a->getBurstTime()) { //Non_preemptive
+                if (a->getBurstTime() < minBurstTime) {   
                     minBurstTime = a->getBurstTime();
                     p = a;
                 }
             }
         }
     }
-    else { //SRTN_Preemptive
-         int minR = INT_MAX;
-         for (auto a : Processes) {
-            if(a->getArrivalTime() <= currentTime && a->getRemainingTime() > 0){
-                if (minR < a->getRemainingTime()) {
+    else { // SRTN
+        int minR = INT_MAX;
+
+        for (auto a : Processes) {
+            if (a->getArrivalTime() <= currentTime && a->getRemainingTime() > 0) {
+                if (a->getRemainingTime() < minR) {  
                     minR = a->getRemainingTime();
                     p = a;
                 }
             }
-         }
+        }
     }
+
     return p;
 }
