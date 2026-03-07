@@ -21,20 +21,15 @@ void Scheduler::addProcess(Process p) {
 // ========== HELPER FUNCTIONS ==========
 
 void Scheduler::distributeProcessesToQueues() {
-    // Duyệt qua tất cả process
-    for (Process& p : Processes) {
+    for(auto& p : Processes) {
         string qid = p.getQueueID();
-        
-        // Tìm queue có ID tương ứng
-        for (Queue& q : Queues) {
+        for (auto& q : Queues) {
             if (q.getQid() == qid) {
-                q.addProcess(&p);  // Thêm pointer của process vào queue
-                break;
+                q.addProcess(&p);
             }
         }
     }
 }
-
 bool Scheduler::allProcessesCompleted() const {
     // Kiểm tra tất cả process
     for (const Process& p : Processes) {
@@ -43,22 +38,6 @@ bool Scheduler::allProcessesCompleted() const {
         }
     }
     return true;  // Tất cả đã xong
-}
-
-int Scheduler::getNextQueueIndex(int startIndex) {
-    int n = Queues.size();
-    
-    // Quét vòng tròn từ queue tiếp theo
-    for (int i = 1; i <= n; i++) {
-        int index = (startIndex + i) % n;
-        
-        // Nếu queue này có process ready
-        if (Queues[index].hasReadyProcess(CurrentTime)) {
-            return index;
-        }
-    }
-    
-    return -1;  // Không có queue nào ready
 }
 
 void Scheduler::executeProcess(Process* p, Queue& q, int timeToRun) {
@@ -97,16 +76,19 @@ void Scheduler::recordEvent(int start, int end, string queueID, string processID
 
 void Scheduler::runScheduling() {
     distributeProcessesToQueues();
-
-    int safetyCounter = 0;
-
-    while (!allProcessesCompleted() && safetyCounter++ < 10000) {
+    while (!allProcessesCompleted()) {
 
         Queue& currentQueue = Queues[CurrentQueueIndex];
 
-        // Nếu queue hiện tại không có process ready → chuyển queue
-        if (!currentQueue.hasReadyProcess(CurrentTime)) {
-            CurrentQueueIndex = (CurrentQueueIndex + 1) % Queues.size();
+        bool Ready = false;
+        for (auto q : Queues) {
+            if (q.hasReadyProcess(CurrentTime)) {
+                Ready = true;
+                break;
+            }
+        }
+        if (Ready == false) {
+            CurrentTime++;
             continue;
         }
 
@@ -117,34 +99,30 @@ void Scheduler::runScheduling() {
         // Chạy trong phạm vi time slice của queue
         while (sliceRemaining > 0 && currentQueue.hasReadyProcess(CurrentTime)) {
 
-            Process* current = currentQueue.getNextProcess(CurrentTime);
-            if (current == nullptr) break;
+            Process* currentP = currentQueue.getNextProcess(CurrentTime);
+            if (currentP == nullptr) break;
 
             if (policy == "SRTN") {
-                // Preemptive → chạy 1 đơn vị
-                executeProcess(current, currentQueue, 1);
+                // Preemptive nên chạy 1 lần rồi lại quay về check tiếp
+                executeProcess(currentP, currentQueue, 1);
                 sliceRemaining--;
 
             } else { 
                 // SJF non-preemptive
-                int timeToRun = min(sliceRemaining, current->getRemainingTime());
-                executeProcess(current, currentQueue, timeToRun);
+                int timeToRun = min(sliceRemaining, currentP->getRemainingTime());
+                executeProcess(currentP, currentQueue, timeToRun);
                 sliceRemaining -= timeToRun;
             }
         }
 
-        // Hết lượt → chuyển queue theo Round Robin
+        // Xong 1 queue thì Round Robin
         CurrentQueueIndex = (CurrentQueueIndex + 1) % Queues.size();
     }
 
     for (Process& p : Processes) {
         p.calculateMetrics();
     }
-
-    if (safetyCounter >= 10000) {
-        cerr << "WARNING: Safety counter reached! Possible infinite loop." << endl;
-    }
-}
+}                                                                        
 
 // ========== GETTERS ==========
 vector<ScheduleEvent> Scheduler::getTimeline() const {

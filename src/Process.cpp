@@ -49,7 +49,7 @@ void Process::setCompletionTime(int time) {
 void Process::setStartTime(int time) {
     StartTime = time;
 }
-//Methods===================================
+
 void Process::execute (int timeUnits) {
     if(RemainingTime >= timeUnits) {
         RemainingTime -= timeUnits;

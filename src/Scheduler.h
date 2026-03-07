@@ -39,8 +39,6 @@ public:
     // TODO: Kiểm tra tất cả process đã xong chưa
     bool allProcessesCompleted() const;
     
-    // TODO: Tìm queue tiếp theo có process ready (Round Robin giữa các queue)
-    int getNextQueueIndex(int startIndex);
     
     // TODO: Thực thi 1 process trong 1 khoảng thời gian
     void executeProcess(Process* p, Queue& q, int timeToRun);
