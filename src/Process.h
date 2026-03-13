@@ -42,7 +42,6 @@ public:
     
     // Debug/Display
     void print() const;
-    
 
 };
 

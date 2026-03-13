@@ -1,7 +1,7 @@
 #include "Process.h"
 #include <iostream>
 #include <iomanip>
-//Constructor===============================
+
 Process::Process()
    : ProcessID(""),ArrivalTime(0),BurstTime(0),RemainingTime(0),
      QueueID(""),CompletionTime(0),WaitingTime(0),TurnaroundTime(0),StartTime(-1) {} 
@@ -11,7 +11,7 @@ Process::Process(string id, int arrival, int burst, string queue)
       RemainingTime(burst), QueueID(queue), 
       CompletionTime(0), TurnaroundTime(0), WaitingTime(0), StartTime(-1) {
 }
-//Getters===================================
+
 string Process::getPID() const {
     return ProcessID;
 }
@@ -39,7 +39,7 @@ int Process::getWaitingTime() const {
 int Process::getStartTime() const {
     return StartTime;
 }
-//Setters===================================
+
 void Process::setRemainingTime(int time) {
     RemainingTime = time;
 }
@@ -64,8 +64,11 @@ bool Process::isCompleted() const {
     return false;
 }
 
-void Process::calculateMetrics() {
-    TurnaroundTime = CompletionTime - ArrivalTime;
+void Process::calculateMetrics()
+{
+    // tổng thời gian của process = thời điểm process chạy xong - thời điểm process vào hệ thống
+    TurnaroundTime = CompletionTime - ArrivalTime; 
+    // tổng thời gian đợi = thời gian hoàn thành - thời gian vào - thời gian đợi cpu chạy xong process khác để đến lượt
     WaitingTime = CompletionTime - ArrivalTime - BurstTime;
 }
 

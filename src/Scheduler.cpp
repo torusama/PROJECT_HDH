@@ -3,13 +3,11 @@
 #include <algorithm>
 using namespace std;
 
-// ========== CONSTRUCTOR ==========
 Scheduler::Scheduler() {
     CurrentTime = 0;
     CurrentQueueIndex = 0;
 }
 
-// ========== ADD DATA ==========
 void Scheduler::addQueue(Queue q) {
     Queues.push_back(q);
 }
@@ -17,8 +15,6 @@ void Scheduler::addQueue(Queue q) {
 void Scheduler::addProcess(Process p) {
     Processes.push_back(p);
 }
-
-// ========== HELPER FUNCTIONS ==========
 
 void Scheduler::distributeProcessesToQueues() {
     for(auto& p : Processes) {
@@ -30,6 +26,7 @@ void Scheduler::distributeProcessesToQueues() {
         }
     }
 }
+
 bool Scheduler::allProcessesCompleted() const {
     // Kiểm tra tất cả process
     for (const Process& p : Processes) {
@@ -40,26 +37,34 @@ bool Scheduler::allProcessesCompleted() const {
     return true;  // Tất cả đã xong
 }
 
-void Scheduler::executeProcess(Process* p, Queue& q, int timeToRun) {
+void Scheduler::executeProcess(Process* p, Queue& q, int timeToRun)
+{
     int startTime = CurrentTime;
     
     // Nếu là lần đầu process được CPU
-    if (p->getStartTime() == -1) {
-        p->setStartTime(CurrentTime);
+    if (p->getStartTime() == -1) // mặc định là -1 nếu chưa chạy
+    {
+        p->setStartTime(CurrentTime); // đặt start time của process là current time
     }
     
     // Thực thi process
-    p->execute(timeToRun);
+    p->execute(timeToRun); // hàm execute sẽ giảm thời gian chạy của process đi 1 lương timeToRun
     
     // Cập nhật thời gian hệ thống
-    CurrentTime += timeToRun;
+    CurrentTime += timeToRun; // CPU đã chạy thêm 1 lượng timeToRun
     
     // Ghi vào timeline
     recordEvent(startTime, CurrentTime, q.getQid(), p->getPID());
+    // VD:  startTime = 8
+    //      CurrentTime = 11
+    //      q.getQid() = Queue = Q1
+    //      p->getPID() = Process = P3
+    //      => timeline sẽ thêm: [8 - 11] Q1 P3
     
     // Nếu process đã hoàn thành
-    if (p->isCompleted()) {
-        p->setCompletionTime(CurrentTime);
+    if (p->isCompleted()) // BurstTime = remainingTime = 0
+    {
+        p->setCompletionTime(CurrentTime); // CompletionTime = CurrentTime
     }
 }
 
@@ -124,7 +129,6 @@ void Scheduler::runScheduling() {
     }
 }                                                                        
 
-// ========== GETTERS ==========
 vector<ScheduleEvent> Scheduler::getTimeline() const {
     return Timeline;
 }
@@ -133,7 +137,6 @@ vector<Process> Scheduler::getProcesses() const {
     return Processes;
 }
 
-// ========== DEBUG ==========
 void Scheduler::print() const {
     cout << "========== SCHEDULER INFO ==========" << endl;
     cout << "Current Time: " << CurrentTime << endl;

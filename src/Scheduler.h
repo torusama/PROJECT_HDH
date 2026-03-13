@@ -36,27 +36,22 @@ public:
     void runScheduling();
     void distributeProcessesToQueues();
     
-    // TODO: Kiểm tra tất cả process đã xong chưa
+    // Kiểm tra tất cả process đã xong chưa
     bool allProcessesCompleted() const;
     
-    
-    // TODO: Thực thi 1 process trong 1 khoảng thời gian
+    // Thực thi 1 process trong 1 khoảng thời gian
     void executeProcess(Process* p, Queue& q, int timeToRun);
     
-    // TODO: Ghi lại event vào timeline
+    // Ghi lại event vào timeline
     void recordEvent(int start, int end, string queueID, string processID);
     
-    
-    // ========== GETTERS ==========
-    // TODO: Lấy timeline để in output
+    // Lấy timeline để in output
     vector<ScheduleEvent> getTimeline() const;
     
-    // TODO: Lấy danh sách process để tính metrics
+    // Lấy danh sách process để tính metrics
     vector<Process> getProcesses() const;
     
-    
-    // ========== DEBUG ==========
-    // TODO: In thông tin scheduler (optional)
+    // In thông tin scheduler (optional)
     void print() const;
 
     // Đọc file
