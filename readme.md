@@ -22,7 +22,7 @@ Chương trình đọc dữ liệu từ **file input** và ghi kết quả ra **
 
 ## Cách biên dịch chương trình
 
-Mở terminal tại thư mục chứa source code và chạy:
+Mở terminal tại thư mục chứa source code (thư mục src: cd src) và chạy:
 
 ```bash
 g++ main.cpp Scheduler.cpp Queue.cpp Process.cpp -o 24127318_24127435.exe
