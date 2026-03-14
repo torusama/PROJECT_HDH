@@ -2,7 +2,7 @@
 
 ## Thông tin đồ án
 
-Môn: Hệ điều hành - LAB 01
+Môn: Hệ điều hành - LAB 01 - 24C08 - HCMUS
 
 Sinh viên thực hiện:
 
